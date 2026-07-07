@@ -34,4 +34,16 @@ route.get('/:id', async (req, res) => {
     }
 })
 
+//POST - create a new Quiz from data collected from client
+route.post('/', async (req, res) => {
+    const submittedData = req.body
+    try {
+        const newQuiz = await createQuiz(submittedData)
+        res.status(201).json(newQuiz)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Internal server error"})
+    }
+})
+
 export default route
