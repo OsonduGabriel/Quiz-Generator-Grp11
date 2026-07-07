@@ -1,12 +1,22 @@
-import express from 'express'
+import { Router } from 'express'
 import {getAllQuizzes, getQuizById, createQuiz, updateQuiz, deleteQuiz} from '../services/service.js'
 
-const route = express.Router()
+const route = Router()
 
-// GET quiz
-route.get('/', (req, res) => {
-    const quizzes = getAllQuizzes()
-    res.status(200).json(quizzes)
+// GET all quizzes from file storage
+route.get('/', async (req, res) => {
+    try {
+        const questions = await getAllQuizzes()
+        res.status(200).json(questions)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Internal server error"})
+    }
+   
+})
+
+//GET quizzes using a particular ID from the client
+route.get('/:id', async (req, res) => {
 
 })
 
