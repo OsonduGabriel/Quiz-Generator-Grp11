@@ -26,7 +26,7 @@ route.get('/:id', async (req, res) => {
             return;
         }
 
-        res.status(404).json({message: `Quiz with id:${quizId} not found`})
+        return res.status(404).json({message: `Quiz with id: ${quizId} not found`})
 
     } catch (error) {
         console.error(error)
@@ -44,6 +44,27 @@ route.post('/', async (req, res) => {
         console.error(error)
         res.status(500).json({message: "Internal server error"})
     }
+})
+
+//PUT - Update an existing quiz using its id
+route.put('/:id', async (req, res) => {
+    const quizId = req.params.id
+    const updatedData = req.body
+
+    try {
+        const updatedQuiz = await updateQuiz(quizId, updatedData)
+
+        if(updatedQuiz){
+            res.status(200).json(updatedQuiz)
+            return;
+        }
+
+        return res.status(404).json({message: `Quiz with id: ${quizId} not found`})
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Internal server error"})
+    }
+
 })
 
 export default route
