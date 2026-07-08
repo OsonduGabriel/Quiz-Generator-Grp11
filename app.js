@@ -1,21 +1,18 @@
-import express from "express";
-import router from "./routes/route.js";
+import express from "express"
+import quizRoutes from "./routes/route.js"
+import { homeLogic } from "./logic/index.js"
 
-const app = express();
-console.log("THIS IS THE NEW APP");
-const PORT = process.env.PORT || 3000;
+const app = express()
+const PORT = 3000
 
-app.use(express.json());
+app.use(express.json())
 
-app.use("/api", router);
+app.get('/', homeLogic)
 
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Quiz Generator API",
-  });
-});
+app.use('/resources', quizRoutes)
 
+
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+     console.log(`Server running at http://localhost:${PORT}`);
 });
