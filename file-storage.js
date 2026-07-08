@@ -1,146 +1,81 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const fsp = fs.promises;
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const DATA_FILE = path.join(DATA_DIR, 'questions.json');
-
-
-let writeQueue = Promise.resolve();
-
-
-async function ensureStorageReady() {
-  if (!fs.existsSync(DATA_DIR)) {
-    await fsp.mkdir(DATA_DIR, { recursive: true });
-  }
-
-  if (!fs.existsSync(DATA_FILE)) {
-    await fsp.writeFile(DATA_FILE, '[]', 'utf8');
-  }
-}
+const DATA_FILE = path.join(__dirname, "data", "questions.json");
 
 async function readData() {
-  await ensureStorageReady();
-
   try {
-    const raw = await fsp.readFile(DATA_FILE, 'utf8');
-    if (!raw || raw.trim().length === 0) {
+    const data = await fs.readFile(DATA_FILE, "utf-8");
+
+    if (!data.trim()) {
       return [];
     }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      throw new Error('Data file does not contain a JSON array');
-    }
-    return parsed;
-  } catch (err) {
-    console.error(`[service] Failed to read/parse ${DATA_FILE}:`, err.message);
-    await fsp.writeFile(DATA_FILE, '[]', 'utf8');
+
+    return JSON.parse(data);
+  } catch (error) {
     return [];
   }
 }
 
-
 async function writeData(data) {
-  if (!Array.isArray(data)) {
-    throw new TypeError('writeData expects an array');
+  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+export async function getAllQuizzes() {
+  return await readData();
+}
+
+export async function getQuizById(id) {
+  const quizzes = await readData();
+  return quizzes.find((quiz) => quiz.id === id);
+}
+
+export async function createQuiz(quiz) {
+  const quizzes = await readData();
+
+  quizzes.push(quiz);
+
+  await writeData(quizzes);
+
+  return quiz;
+}
+
+export async function updateQuiz(id, updatedQuiz) {
+  const quizzes = await readData();
+
+  const index = quizzes.findIndex((quiz) => quiz.id === id);
+
+  if (index === -1) {
+    return null;
   }
 
-  await ensureStorageReady();
+  quizzes[index] = {
+    ...quizzes[index],
+    ...updatedQuiz,
+    id,
+  };
 
-  const tempFile = path.join(DATA_DIR, `.questions.tmp-${process.pid}-${Date.now()}.json`);
-  const json = JSON.stringify(data, null, 2);
+  await writeData(quizzes);
 
-  await fsp.writeFile(tempFile, json, 'utf8');
-  await fsp.rename(tempFile, DATA_FILE);
+  return quizzes[index];
 }
 
+export async function deleteQuiz(id) {
+  const quizzes = await readData();
 
-function queueWrite(mutator) {
-  writeQueue = writeQueue
-    .then(async () => {
-      const current = await readData();
-      const next = await mutator(current);
-      await writeData(next);
-      return next;
-    })
-    .catch((err) => {
-      console.error('[service] Write queue error:', err.message);
-      throw err;
-    });
+  const index = quizzes.findIndex((quiz) => quiz.id === id);
 
-  return writeQueue;
+  if (index === -1) {
+    return false;
+  }
+
+  quizzes.splice(index, 1);
+
+  await writeData(quizzes);
+
+  return true;
 }
-
-
-
-
-async function getAllQuizzes() {
-  return readData();
-}
-
-
-async function getQuizById(id) {
-  const data = await readData();
-  return data.find((item) => item.id === id);
-}
-
-async function createQuiz(record) {
-  await queueWrite((data) => {
-    data.push(record);
-    return data;
-  });
-  return record;
-}
-
-
-async function updateQuiz(id, updates) {
-  let updatedRecord = null;
-
-  await queueWrite((data) => {
-    const index = data.findIndex((item) => item.id === id);
-    if (index === -1) {
-      return data; 
-    }
-    updatedRecord = {
-      ...data[index],
-      ...updates,
-      id: data[index].id,
-      createdAt: data[index].createdAt,
-      updatedAt: new Date().toISOString(),
-    };
-    data[index] = updatedRecord;
-    return data;
-  });
-
-  return updatedRecord;
-}
-
-
-async function deleteQuiz(id) {
-  let removed = false;
-
-  await queueWrite((data) => {
-    const next = data.filter((item) => item.id !== id);
-    removed = next.length !== data.length;
-    return next;
-  });
-
-  return removed;
-}
-
-export default {
-  DATA_FILE,
-  ensureStorageReady,
-  getAll,
-  getById,
-  create,
-  update,
-  remove,
-};
-
-export { DATA_FILE, ensureStorageReady, getAll, getById, create, update, remove };
