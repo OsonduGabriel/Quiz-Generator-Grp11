@@ -179,9 +179,9 @@ Deletes a quiz.
 | Member | Role | What They Built |
 |--------|------|------------------|
 | [Osondu-Gabriel] | Routes & README | Express route handlers for all CRUD endpoints (`routes/`) and README project documentation |
-| [Name] | File Storage | JSON file read/write logic, ID generation, timestamps (`services/`) |
+| [Sanni-Abdulroheem-Olanrewaju] | File Storage | JSON file read/write logic, ID generation, timestamps (`services/`) |
 | [Popoola-Divine-Gbolahan] | Validation | Request body validation, required fields, type checks (`validation/` or `utils/`) |
-| [Name] | Testing | Endpoint testing using POSTMAN|
+| [Apochi-Victor-James] | Testing | Endpoint testing using POSTMAN|
 
 ## Known Issues & Limitations
 
