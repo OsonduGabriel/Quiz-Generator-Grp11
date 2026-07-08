@@ -3,6 +3,11 @@ import {getAllQuizzes, getQuizById, createQuiz, updateQuiz, deleteQuiz} from '..
 
 const route = Router()
 
+//test if Route is working
+route.get('/test', (req, res) => {
+    res.send("Route is working")
+})
+
 // GET all quizzes from file storage
 route.get('/', async (req, res) => {
     try {
