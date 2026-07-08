@@ -6,7 +6,7 @@ export function validateQuestion(questionObj, index) {
     index = 0;
   }
 
-  var errors = [];
+  const errors = [];
 
   if (!questionObj || typeof questionObj !== 'object') {
     errors.push('Question at index ' + index + ' must be a valid object.');
@@ -27,9 +27,9 @@ export function validateQuestion(questionObj, index) {
     }
 
     // checking every option one at a time with a regular loop
-    var allStringsOk = true;
-    for (var i = 0; i < questionObj.options.length; i++) {
-      var option = questionObj.options[i];
+    let allStringsOk = true;
+    for (let i = 0; i < questionObj.options.length; i++) {
+      const option = questionObj.options[i];
       if (typeof option !== 'string' || option.trim() === '') {
         allStringsOk = false;
       }
@@ -39,7 +39,7 @@ export function validateQuestion(questionObj, index) {
     }
   }
 
-  var isValid = false;
+  let isValid = false;
   if (errors.length === 0) {
     isValid = true;
   }
@@ -48,7 +48,7 @@ export function validateQuestion(questionObj, index) {
 }
 
 export function validateQuiz(quiz) {
-  var errors = [];
+  const errors = [];
 
   if (!quiz || typeof quiz !== 'object') {
     errors.push('Quiz data must be a valid object.');
@@ -65,17 +65,17 @@ export function validateQuiz(quiz) {
     errors.push('A quiz must have at least one question.');
   } else {
     // check each question one at a time
-    for (var i = 0; i < quiz.questions.length; i++) {
-      var result = validateQuestion(quiz.questions[i], i);
+    for (let i = 0; i < quiz.questions.length; i++) {
+      const result = validateQuestion(quiz.questions[i], i);
       if (!result.valid) {
-        for (var j = 0; j < result.errors.length; j++) {
+        for (let j = 0; j < result.errors.length; j++) {
           errors.push(result.errors[j]);
         }
       }
     }
   }
 
-  var isValid = false;
+  let isValid = false;
   if (errors.length === 0) {
     isValid = true;
   }
@@ -84,7 +84,7 @@ export function validateQuiz(quiz) {
 }
 
 export function validateSubmission(submission, originalQuiz) {
-  var errors = [];
+  const errors = [];
 
   if (!submission || typeof submission !== 'object') {
     errors.push('Submission data must be a valid object.');
@@ -101,13 +101,13 @@ export function validateSubmission(submission, originalQuiz) {
     return { valid: false, errors: errors };
   }
 
-  var expectedCount = originalQuiz.questions.length;
-  var actualCount = submission.answers.length;
+  const expectedCount = originalQuiz.questions.length;
+  const actualCount = submission.answers.length;
   if (actualCount !== expectedCount) {
     errors.push('You answered ' + actualCount + ' questions, but the quiz has ' + expectedCount + ' questions.');
   }
 
-  var isValid = false;
+  let isValid = false;
   if (errors.length === 0) {
     isValid = true;
   }
