@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { validateQuiz } from './validation.js';
+import { validateQuiz } from '../utils/validation.js';
 
 const fsp = fs.promises;
 
@@ -100,8 +100,8 @@ async function getQuizById(id) {
 }
 
 async function createQuiz(quiz) {
-  const { isValid, errors } = validateQuiz(quiz);
-  if (!isValid) {
+  const { valid, errors } = validateQuiz(quiz);
+  if (!valid) {
     throw makeValidationError(errors);
   }
 
@@ -139,8 +139,8 @@ async function updateQuiz(id, updates) {
       createdAt: existing.createdAt,
     };
 
-    const { isValid, errors } = validateQuiz(merged);
-    if (!isValid) {
+    const { valid, errors } = validateQuiz(merged);
+    if (!valid) {
       throw makeValidationError(errors);
     }
 
