@@ -1,71 +1,95 @@
-import express from 'express';
-import { getQuestions, createQuizFromQuestions } from '../services/service.js';
-import { validateQuizRequest } from '../utils/validation.js';
+import { Router } from 'express'
+import {getAllQuizzes, getQuizById, createQuiz, updateQuiz, deleteQuiz} from '../services/service.js'
 
-const router = express.Router();
+const route = Router()
 
-// A simple health check route to confirm the API is running.
-router.get('/health', (req, res) => {
-  res.json({ success: true, message: 'Quiz generator API is running' });
-});
+// GET all quizzes from file storage
+route.get('/', async (req, res) => {
+    try {
+        const questions = await getAllQuizzes()
+        res.status(200).json(questions)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Internal server error"})
+    }
+   
+})
 
-// Get all quiz questions.
-router.get('/quiz', async (req, res) => {
-  try {
-    const questions = await getQuestions();
-    res.json({ success: true, data: questions });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Unable to load questions',
-      error: error.message,
-    });
-  }
-});
+//GET quizzes using a particular ID from the client
+route.get('/:id', async (req, res) => {
+    const quizId = req.params.id
+    try {
+        const question = await getQuizById(quizId)
 
-// Create a quiz from the request body.
-router.post('/quiz', async (req, res) => {
-  const validation = validateQuizRequest(req.body);
+        if(question){
+            res.status(200).json(question)
+            return;
+        }
 
-  if (!validation.isValid) {
-    return res.status(400).json({ success: false, errors: validation.errors });
-  }
+        return res.status(404).json({message: `Quiz with id: ${quizId} not found`})
 
-  try {
-    const quiz = await createQuizFromQuestions(req.body);
-    res.status(201).json({ success: true, data: quiz });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Unable to create quiz',
-      error: error.message,
-    });
-  }
-});
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Internal server error"})
+    }
+})
 
-// Get one quiz question by its id.
-router.get('/quiz/:id', async (req, res) => {
-  try {
-    const questions = await getQuestions();
-    const question = questions.find((item) => String(item.id) === req.params.id);
+//create a new Quiz from data collected from client
+route.post('/', async (req, res) => {
+    const submittedData = req.body
+    try {
+        const newQuiz = await createQuiz(submittedData)
+        res.status(201).json(newQuiz)
 
-    if (!question) {
-      return res.status(404).json({ success: false, message: 'Question not found' });
+    } catch (error) {
+        console.error(error)
+        if (error.name === "ValidationError") {
+            return res.status(400).json({message: error.message});
+        }
+       return res.status(500).json({message: "Internal server error"})
+    }
+})
+
+// Update an existing quiz using its id
+route.put('/:id', async (req, res) => {
+    const quizId = req.params.id
+    const updatedData = req.body
+
+    try {
+        const updatedQuiz = await updateQuiz(quizId, updatedData)
+
+        if(updatedQuiz){
+            res.status(200).json(updatedQuiz)
+            return;
+        }
+
+        return res.status(404).json({message: `Quiz with id: ${quizId} not found`})
+    } catch (error) {
+        console.error(error)
+        if (error.name === "ValidationError") {
+            return res.status(400).json({message: error.message});
+        }
+       return res.status(500).json({message: "Internal server error"})
     }
 
-    res.json({ success: true, data: question });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Unable to load question',
-      error: error.message,
-    });
-  }
-});
+})
 
-// Catch-all for unknown routes.
-router.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
-});
+// delete a quiz from data/questions.json using the quiz id
+route.delete("/:id", async (req, res) => {
+    const quizId = req.params.id
 
-export default router;
+    try {
+        const deletedQuiz = await deleteQuiz(quizId)
+
+        if(deletedQuiz){
+            return res.status(200).json({message: "Quiz successfully deleted"})
+        }
+
+        return res.status(404).json({message: `Quiz with id: ${quizId} not found` })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Internal Server Error"})
+    }
+})
+
+export default route

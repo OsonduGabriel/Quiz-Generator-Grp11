@@ -27,38 +27,26 @@ async function ensureStorageReady() {
 }
 
 async function readData() {
-  await ensureStorageReady();
-
   try {
-    const raw = await fsp.readFile(DATA_FILE, 'utf8');
-    if (!raw || raw.trim().length === 0) {
+    const data = await fs.readFile(DATA_FILE, "utf-8");
+
+    if (!data.trim()) {
       return [];
     }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      throw new Error('Data file does not contain a JSON array');
-    }
-    return parsed;
-  } catch (err) {
-    console.error(`[service] Failed to read/parse ${DATA_FILE}:`, err.message);
-    await fsp.writeFile(DATA_FILE, '[]', 'utf8');
+
+    return JSON.parse(data);
+  } catch (error) {
     return [];
   }
 }
 
 
 async function writeData(data) {
-  if (!Array.isArray(data)) {
-    throw new TypeError('writeData expects an array');
-  }
+  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+}
 
-  await ensureStorageReady();
-
-  const tempFile = path.join(DATA_DIR, `.questions.tmp-${process.pid}-${Date.now()}.json`);
-  const json = JSON.stringify(data, null, 2);
-
-  await fsp.writeFile(tempFile, json, 'utf8');
-  await fsp.rename(tempFile, DATA_FILE);
+export async function getAllQuizzes() {
+  return await readData();
 }
 
 
