@@ -27,8 +27,10 @@ async function ensureStorageReady() {
 }
 
 async function readData() {
+  await ensureStorageReady()
+  
   try {
-    const data = await fs.readFile(DATA_FILE, "utf-8");
+    const data = await fsp.readFile(DATA_FILE, "utf-8");
 
     if (!data.trim()) {
       return [];
@@ -42,11 +44,7 @@ async function readData() {
 
 
 async function writeData(data) {
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-export async function getAllQuizzes() {
-  return await readData();
+  await fsp.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
 
